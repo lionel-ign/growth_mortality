@@ -7,7 +7,7 @@ fit_model_tree <- function(data, espar, indice) {
   # --- 2. Filtrer espèce + NAs ---
   sub_dat <- data |>
     dplyr::filter(espar.x == espar) |>
-    dplyr::select(all_of(Xvar), mort, ser_86, incref, npp) |>
+    dplyr::select(all_of(Xvar), mort, ser_86, incref, idp) |>
     tidyr::drop_na(all_of(Xvar))
   
   # if no dead tree pass
@@ -18,7 +18,7 @@ fit_model_tree <- function(data, espar, indice) {
     dplyr::mutate(
       across(all_of(Xvar) & where(is.numeric), ~ as.numeric(scale(.x))),
       ser_id  = as.integer(as.factor(ser_86)),
-      npp_id  = as.integer(as.factor(interaction(ser_86, npp))),
+      idp_id  = as.integer(as.factor(interaction(ser_86, idp))),
       increff = as.integer(as.factor(incref))
     )
   
@@ -27,7 +27,7 @@ fit_model_tree <- function(data, espar, indice) {
     "mort ~ 1 + ", indice, " +
     f(ser_id,  model = 'iid',
       hyper = list(prec = list(prior = 'pc.prec', param = c(0.5, 0.01)))) +
-    f(npp_id,  model = 'iid',
+    f(idp_id,  model = 'iid',
       hyper = list(prec = list(prior = 'pc.prec', param = c(0.5, 0.01)))) +
     f(increff, model = 'rw2',
       hyper = list(prec = list(prior = 'pc.prec', param = c(0.5, 0.01))))"
@@ -70,7 +70,7 @@ extract_fit <- function(data, model, espar, indice) {
   # --- 3. Préparer les données ---
   sub_dat <- data |>
     dplyr::filter(espar.x == espar) |>
-    dplyr::select(all_of(Xvar), mort, ser_86, incref, npp,
+    dplyr::select(all_of(Xvar), mort, ser_86, incref, idp,
                   gtot, cdim) |>
     tidyr::drop_na(all_of(Xvar))
   
@@ -145,7 +145,7 @@ extract_pred <- function(data, model, espar, indice,
   
   sub_dat <- data |>
     dplyr::filter(espar.x == espar) |>
-    dplyr::select(all_of(Xvar), mort, ser_86, incref, npp, gtot, cdim, w, poids) |>
+    dplyr::select(all_of(Xvar), mort, ser_86, incref, idp, gtot, cdim, w, poids) |>
     tidyr::drop_na(all_of(Xvar))
   
   is_obs <- !is.na(sub_dat$mort)
@@ -200,12 +200,12 @@ extract_pred <- function(data, model, espar, indice,
     ba_mat <- sim * sub_dat$gtot   # ba des arbres morts simulés
     
     results[[i]] <- as_tibble(ba_mat) |>
-      mutate(npp  = sub_dat$npp,
+      mutate(idp  = sub_dat$idp,
              year = sub_dat$incref + 2005,
              w  = sub_dat$w,
              poid = sub_dat$poids) |>
       pivot_longer(starts_with("V")) |>
-      group_by(npp, year, name, poid) |>
+      group_by(idp, year, name, poid) |>
       summarise(ba_dead = sum(value * w) / sum(w), .groups = "drop") |>
       group_by(year, name) |>
       summarise(ba_dead = sum(ba_dead * poid) / sum(poid), .groups = "drop")

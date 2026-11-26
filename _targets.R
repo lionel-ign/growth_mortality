@@ -72,7 +72,7 @@ lbls <- combinations |>
 
 ## read-in the data
 here::i_am("_targets.R")
-data <- arrow::read_feather("data/tree_df.feather")
+data <- arrow::read_parquet("data/tree_df.parquet")
 traits <- read.csv("data/tree_traits.csv")
 mort_trend <- read.csv("data/mort_trend.csv")
 

@@ -766,7 +766,7 @@ plot_ser_anom <- function(data, model, espar, indice,
   
   sub_dat <- data |>
     dplyr::filter(espar.x == espar) |>
-    dplyr::select(all_of(Xvar), mort, ser_86, incref, npp, gtot, cdim, w) |>
+    dplyr::select(all_of(Xvar), mort, ser_86, incref, idp, gtot, cdim, w) |>
     tidyr::drop_na(all_of(Xvar)) 
   sub_dat$ser_id <- as.integer(as.factor(sub_dat$ser_86))
   
@@ -823,7 +823,7 @@ plot_incref_anom <- function(data, model, espar, indice){
   
   sub_dat <- data |>
     dplyr::filter(espar.x == espar) |>
-    dplyr::select(all_of(Xvar), mort, ser_86, incref, npp, gtot, cdim, w) |>
+    dplyr::select(all_of(Xvar), mort, ser_86, incref, idp, gtot, cdim, w) |>
     tidyr::drop_na(all_of(Xvar)) 
   sub_dat$incref_id <- as.integer(as.factor(sub_dat$incref))
   
@@ -1206,7 +1206,7 @@ get_summary_table <- function(data, output_dir = "tables"){
   
   data %>%
     group_by(espar.x) %>%
-    summarise(nb_plot = length(unique(npp)),
+    summarise(nb_plot = length(unique(idp)),
               nb_alive = sum(type == "alive"),
               nb_dead = sum(type == "dead")) %>%
     mutate(prop_dead = round((nb_dead / (nb_dead + nb_alive)) * 100, 2)) %>%
