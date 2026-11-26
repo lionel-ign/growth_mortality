@@ -52,7 +52,7 @@ get_data_tree <- function(sel){
     filter(!is.na(type)) %>%
     select(incref, npp, a, ba_tot, c13.x, espar.x, ori,
            htot, gtot, ir5, abg, type, age13, lib,
-           w, contains("ai")) %>%
+           w, wac, contains("ai")) %>%
     mutate(ai2 = ai2 - ai1,
            ai3 = ai3 - ai2,
            ai4 = ai4 - ai3,
@@ -71,7 +71,7 @@ get_data_tree <- function(sel){
                            .default = NA)) %>%
     group_by(npp, incref) %>%
     mutate(abg_pl = abg / mean(abg, na.rm=TRUE)) %>%
-    select(npp, incref, a, espar.x, ori, lib, htot, age13, w, type, ba_tot, gtot, gtot_0, abg, abg2,
+    select(npp, incref, a, espar.x, ori, lib, htot, age13, w, wac, type, ba_tot, gtot, gtot_0, abg, abg2,
            abg_diff, abg_pl, contains("ai"), ir5, abg2c, relbai, relbac) %>%
     collect() %>%
     ungroup() -> dd
@@ -110,8 +110,8 @@ get_data_tree <- function(sel){
   ## add plot-level infos
   g3f %>%
     inner_join(e2p, by = "npp") %>%
-    inner_join(e1p, by = "npp") %>%
-    select(npp, idp, greco, ser_86, pro_nm, pro_psg, sfo_nm, sver, poids) %>%
+    inner_join(select(e1p, npp, idp), by = "npp") %>%
+    select(npp, idp, greco, ser_86, pro_psg, sfo_nm, sver, poids) %>%
     filter(npp %in% local(dd$npp)) %>%
     collect() %>%
     inner_join(dd, by = "npp") -> dat
@@ -127,6 +127,20 @@ get_data_tree <- function(sel){
                                  .default = "gb"))
   
   return(dat)
+}
+
+## function to save tree-level data
+save_data_tree <- function(data){
+  
+  ## replace w with wac and drop and give dummy plot weights
+  data %>%
+    mutate(w = wac,
+           poids = 2) %>%
+    select(-wac, -npp) -> save_dat
+  
+  path <- file.path("data", "tree_df.parquet")
+  arrow::write_parquet(save_dat, path)
+  return(path)
 }
 
 ## generate mort trends from ocre
